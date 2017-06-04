@@ -1,4 +1,5 @@
 import curses, sys, getopt
+version_number = "ALFA 0.1"
 
 #  Prints a nicely formatted usage message.
 def usage():
@@ -12,7 +13,7 @@ def usage():
   sys.exit(1)
 
 def version():
-  print "\t This is pttp and pyton port of tpp Alfa 0.1"
+  print "\t This is pttp and pyton port of tpp " + version_number
   sys.exit(1)
 
 
@@ -49,30 +50,50 @@ def statr():
 
 
 def main(argv):
-   inputfile = ''
-   outputfile = ''
+   type = "ncurses"
+   output = ""
    try:
-      opts, args = getopt.getopt(argv,"t:o:s:vh",["--type=","--file","--seconds=","--version","--help"])
+      opts, args = getopt.getopt(argv,"t:o:s:vh",["type=","outputfile","seconds=","version","help"])
    except getopt.GetoptError:
       usage();
-   if (len(args) == 0 and len(opts) ==0):
+   print opts
+   print args
+   if (len(args) == 0 and len(opts) ==0) or (len(args) > 1):
       usage();
    for opt, arg in opts:
-      if opt in( '-h',"--help"):
+      if opt in( "-h","--help"):
          usage()
-      if opt in( '-v',"--version"):
+      if opt in( "-v","--version"):
          version()
-      elif opt in ("-i", "--ifile"):
-         inputfile = arg
-      elif opt in ("-o", "--ofile"):
-         outputfile = arg
-   print 'Input file is "', inputfile
-   print 'Output file is "', outputfile
+      elif opt in ("-t", "--type"):
+         type = arg
+      elif opt in ("-o", "--outputfile"):
+         output = arg
+      elif opt in ("-s", "--seconds"):
+         time = int(arg)
+   input = args[0]
+   print 'Input file is ', input
+   print 'Type is ', type
+
+   if type == "ncurses":   # No swich case in python
+      ctrl = InteractiveController.new(input,NcursesVisualizer)
+   elif type ==  "autoplay":
+      ctrl = AutoplayController.new(input,time,NcursesVisualizer)
+   elif type ==  "txt":
+      if output == "":
+         print "Missing output file!"
+         usage()
+      else:
+         ctrl = ConversionController.new(input,output,TextVisualizer)
+   elif type == "latex":
+       if output == "":
+          print "Missing output file!"
+          usage()
+       else:
+          ctrl = ConversionController.new(input,output,LatexVisualizer)
+   else:
+      usage()
 
 
 if __name__ == "__main__":
    main(sys.argv[1:])
-
-
-
-
