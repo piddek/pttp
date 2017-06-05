@@ -179,24 +179,32 @@ class InteractiveController(TppControler):
      # while self.reload_file
 
   def do_run(self):
-    pttp()
+      pttp()
 
 def pttp():
-   global stdscr = curses.initscr()
+   stdscr = curses.initscr()
    curses.noecho()
    curses.cbreak()
    stdscr.keypad(1)
-   begin_x = 20; begin_y = 7
-   height = 5; width = 40
-   win = curses.newwin(height, width, begin_y, begin_x)
-   stdscr.addstr(5, 7, "Current mode: Typing mode", curses.A_REVERSE)
-   stdscr.refresh()
-   while 1:
-      c = stdscr.getch()
-      if c == ord('p'):
-         PrintDocument()
-      elif c == ord('q'):
-         break  # Exit the while()
+   try:
+      begin_x = 20; begin_y = 7
+      height = 5; width = 40
+      win = curses.newwin(height, width, begin_y, begin_x)
+      stdscr.addstr(5, 7, "Current mode: Typing mode", curses.A_REVERSE)
+      stdscr.refresh()
+      while 1:
+         c = stdscr.getch()
+         if c == ord('p'):
+            PrintDocument()
+         elif c == ord('q'):
+            break  # Exit the while()
+   except Exception as e:
+      print("hoppsan!");
+      print e
+   curses.nocbreak()
+   stdscr.keypad(0)
+   curses.echo()
+   curses.endwin()
 
 
 
@@ -248,18 +256,9 @@ def main(argv):
       usage()
 
    print "Starting ctrl"
-  
-   try:
-      print "nu kor vi"
-      ctrl.run()
-   except Exception as e:
-      print("hoppsan!");
-      print e
+   ctrl.run()
    ctrl.close
-   curses.nocbreak()
-   stdscr.keypad(0)
-   curses.echo()
-   curses.endwin()
+ 
    exit(0)
 
 
