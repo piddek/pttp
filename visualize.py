@@ -1,5 +1,5 @@
 
-import datetime
+import datetime, curses
 
 class TppVisualizer:
 
@@ -331,22 +331,22 @@ class TppVisualizer:
     pass
 
 
-# Implements an interactive visualizer which builds on top of ncurses.
+# Implements an interactive visualizer which builds on top of curses.
 class NcursesVisualizer(TppVisualizer):
 
   def __init__(self):
     self.figletfont = "standard"
-    # Ncurses.initscr
-    # Ncurses.curs_set(0)
-    # Ncurses.cbreak # unbuffered input
-    # Ncurses.noecho # turn off input echoing
-    # Ncurses.stdscr.intrflush(false)
-    # Ncurses.stdscr.keypad(true)
-    # self.screen = Ncurses.stdscr
+    curses.initscr
+    curses.curs_set(0)
+    curses.cbreak # unbuffered input
+    curses.noecho # turn off input echoing
+    curses.stdscr.intrflush(false)
+    curses.stdscr.keypad(true)
+    self.screen = curses.stdscr
     self.lastFileName = nil
-    # setsizes
-    # Ncurses.start_color()
-    # Ncurses.use_default_colors()
+    setsizes
+    curses.start_color()
+    curses.use_default_colors()
     do_bgcolor("black")
     do_fgcolor("white")
     # self.fgcolor = ColorMap.get_color_pair("white")
@@ -357,53 +357,27 @@ class NcursesVisualizer(TppVisualizer):
 
 
   def get_key(self):
-    ch = Ncurses.getch
-    case ch
-      when 100, #d
-        68, #D
-        106, #j
-        74, #J
-        108, #l
-        76, #L
-        Ncurses::KEY_DOWN,
-        Ncurses::KEY_RIGHT
-        return :keyright
-      when 97, #a
-        65, #A
-        98, #b
-        66, #B
-        104, #h
-        72, #h
-        107, #k
-        75, #k
-        Ncurses::KEY_UP,
-        Ncurses::KEY_LEFT
-        return :keyleft
-      when 122, #z
-        90 #Z
-        return :keyresize
-      when 114, #r
-        82 #R
-        return :reload
-      when 113, #q
-        81 #Q
-        return :quit
-      when 115, #s
-        83 #S
-        return :firstpage
-      when 101, #e
-        69 #E
-        return :edit
-      when 103, #g
-        71 #g
-        return :jumptoslide
-      when 63 #?
-        return :help
-
-      else
-        return :keyright
-    end
-  end
+    ch = curses.getch
+    if ch in [ord('d'), ord('D'), ord('j'), ord('J'), ord('l'), ord('L'), curses.KEY_DOWN, curses.KEY_RIGHT]:
+        return "keyright"
+    if ch in [ord('a'), ord('A'), ord('b'), ord('B'), ord('h'), ord('H'), ord('k'), ord('K'), curses.KEY_UP, curses.KEY_LEFT]:
+        return "keyleft"
+    if ch in [ord('z'), ord('Z')]:
+        return "keyresize"
+    if ch in [ord('r'), ord('R')]:
+        return "reload"
+    if ch in [ord('q'), ord('Q')]:
+        return "quit"
+    if ch in [ord('s'), ord('S')]:
+        return "firstpage"
+    if ch in [ord('e'), ord('E')]:
+        return "edit"
+    if ch in [ord('g'), ord('G')]:
+        return "jumptoslide"
+    if ch in [ord('?')]:
+        return "help"
+    else:
+        return "keyright"
 
   def clear(self):
     self.screen.clear
@@ -412,8 +386,8 @@ class NcursesVisualizer(TppVisualizer):
 
 
   def setsizes(self):
-    self.termwidth = Ncurses.getmaxx(self.screen)
-    self.termheight = Ncurses.getmaxy(self.screen)
+    self.termwidth = curses.getmaxx(self.screen)
+    self.termheight = curses.getmaxy(self.screen)
   end
 
   def do_refresh(self):
@@ -428,10 +402,10 @@ class NcursesVisualizer(TppVisualizer):
   def draw_border(self):
     self.screen.move(0,0)
     self.screen.addstr(".")
-    (self.termwidth-2).times { self.screen.addstr("-") }; self.screen.addstr(".")
+    # (self.termwidth-2).times { self.screen.addstr("-") }; self.screen.addstr(".")
     self.screen.move(self.termheight-2,0)
     self.screen.addstr("`")
-    (self.termwidth-2).times { self.screen.addstr("-") }; self.screen.addstr("'")
+    # (self.termwidth-2).times { self.screen.addstr("-") }; self.screen.addstr("'")
     1.upto(self.termheight-3) do |y|
       self.screen.move(y,0)
       self.screen.addstr("|")
@@ -450,18 +424,18 @@ class NcursesVisualizer(TppVisualizer):
   end
 
   def do_heading(self, line):
-    self.screen.attron(Ncurses::A_BOLD)
+    self.screen.attron(curses.A_BOLD)
     print_heading(line)
-    self.screen.attroff(Ncurses::A_BOLD)
+    self.screen.attroff(curses.A_BOLD)
   end
 
   def do_horline(self):
-    self.screen.attron(Ncurses::A_BOLD)
+    self.screen.attron(curses.A_BOLD)
     self.termwidth.times do |x|
       self.screen.move(self.cur_line,x)
       self.screen.addstr("-")
     end
-    self.screen.attroff(Ncurses::A_BOLD)
+    self.screen.attroff(curses.A_BOLD)
   end
 
   def print_heading(self,text):
@@ -627,27 +601,27 @@ class NcursesVisualizer(TppVisualizer):
   end
 
   def do_boldon(self):
-    self.screen.attron(Ncurses::A_BOLD)
+    self.screen.attron(curses.A_BOLD)
   end
 
   def do_boldoff(self):
-    self.screen.attroff(Ncurses::A_BOLD)
+    self.screen.attroff(curses.A_BOLD)
   end
 
   def do_revon(self):
-    self.screen.attron(Ncurses::A_REVERSE)
+    self.screen.attron(curses.A_REVERSE)
   end
 
   def do_revoff(self):
-    self.screen.attroff(Ncurses::A_REVERSE)
+    self.screen.attroff(curses.A_REVERSE)
   end
 
   def do_ulon(self):
-    self.screen.attron(Ncurses::A_UNDERLINE)
+    self.screen.attron(curses.A_UNDERLINE)
   end
 
   def do_uloff(self):
-    self.screen.attroff(Ncurses::A_UNDERLINE)
+    self.screen.attroff(curses.A_UNDERLINE)
   end
 
   def do_beginslideleft(self):
@@ -690,29 +664,29 @@ class NcursesVisualizer(TppVisualizer):
 
   def do_bgcolor(self, color):
     bgcolor = ColorMap.get_color(color) or COLOR_BLACK
-    Ncurses.init_pair(1, COLOR_WHITE, bgcolor)
-    Ncurses.init_pair(2, COLOR_YELLOW, bgcolor)
-    Ncurses.init_pair(3, COLOR_RED, bgcolor)
-    Ncurses.init_pair(4, COLOR_GREEN, bgcolor)
-    Ncurses.init_pair(5, COLOR_BLUE, bgcolor)
-    Ncurses.init_pair(6, COLOR_CYAN, bgcolor)
-    Ncurses.init_pair(7, COLOR_MAGENTA, bgcolor)
-    Ncurses.init_pair(8, COLOR_BLACK, bgcolor)
+    curses.init_pair(1, COLOR_WHITE, bgcolor)
+    curses.init_pair(2, COLOR_YELLOW, bgcolor)
+    curses.init_pair(3, COLOR_RED, bgcolor)
+    curses.init_pair(4, COLOR_GREEN, bgcolor)
+    curses.init_pair(5, COLOR_BLUE, bgcolor)
+    curses.init_pair(6, COLOR_CYAN, bgcolor)
+    curses.init_pair(7, COLOR_MAGENTA, bgcolor)
+    curses.init_pair(8, COLOR_BLACK, bgcolor)
     if self.fgcolor then
-      Ncurses.bkgd(Ncurses.COLOR_PAIR(self.fgcolor))
+      curses.bkgd(curses.COLOR_PAIR(self.fgcolor))
     else
-      Ncurses.bkgd(Ncurses.COLOR_PAIR(1))
+      curses.bkgd(curses.COLOR_PAIR(1))
     end
   end
 
   def do_fgcolor(self,color):
     self.fgcolor = ColorMap.get_color_pair(color)
-    Ncurses.attron(Ncurses.COLOR_PAIR(self.fgcolor))
+    curses.attron(curses.COLOR_PAIR(self.fgcolor))
   end
 
   def do_color(self, color):
     num = ColorMap.get_color_pair(color)
-    Ncurses.attron(Ncurses.COLOR_PAIR(num))
+    curses.attron(curses.COLOR_PAIR(num))
   end
 
   def type_line(self,l):
@@ -752,7 +726,7 @@ class NcursesVisualizer(TppVisualizer):
       # ycount = self.cur_line
       new_scr = self.screen.dupwin
       1.upto(self.cur_line) do |i|
-        Ncurses.overwrite(new_scr,self.screen) # overwrite self.screen with new_scr
+        curses.overwrite(new_scr,self.screen) # overwrite self.screen with new_scr
         self.screen.move(i,self.indent)
         self.screen.addstr(l)
         self.screen.refresh()
@@ -761,7 +735,7 @@ class NcursesVisualizer(TppVisualizer):
     when "bottom"
       new_scr = self.screen.dupwin
       (self.termheight-1).downto(self.cur_line) do |i|
-        Ncurses.overwrite(new_scr,self.screen)
+        curses.overwrite(new_scr,self.screen)
         self.screen.move(i,self.indent)
         self.screen.addstr(l)
         self.screen.refresh()
@@ -797,8 +771,8 @@ class NcursesVisualizer(TppVisualizer):
   end
 
   def close(self):
-    Ncurses.nocbreak
-    Ncurses.endwin
+    curses.nocbreak
+    curses.endwin
   end
 
   def read_newpage(self,pages,current_page):
@@ -824,9 +798,9 @@ class NcursesVisualizer(TppVisualizer):
     self.screen.move(self.termheight - 2, self.indent + prompt_indent)
     self.screen.addstr(prompt)
     # self.screen.refresh();
-    Ncurses.echo
+    curses.echo
     self.screen.scanw("%d",page)
-    Ncurses.noecho
+    curses.noecho
     self.screen.move(self.termheight - 2, self.indent + prompt_indent)
     (prompt.length + page[0].to_s.length).times { self.screen.addstr(" ") }
     if page[0] then
@@ -844,12 +818,12 @@ class NcursesVisualizer(TppVisualizer):
   end
 
   def restore_screen(self,s):
-    Ncurses.overwrite(s,self.screen)
+    curses.overwrite(s,self.screen)
   end
 
   def draw_slidenum(self, cur_page,max_pages,eop):
     self.screen.move(self.termheight - 2, self.indent)
-    self.screen.attroff(Ncurses::A_BOLD) # this is bad
+    self.screen.attroff(curses.A_BOLD) # this is bad
     self.screen.addstr("[slide #{cur_page}/#{max_pages}]")
     if self.footer_txt.to_s.length > 0 then
       do_footer(self.footer_txt)
@@ -872,7 +846,7 @@ class NcursesVisualizer(TppVisualizer):
 
 end
 
-viz = NcursesVisualizer()
+viz = cursesVisualizer()
 print viz.split_lines("Vargen ar nu alla har, har patrullerna sa kar, leder stottar skogens djur",20)
 
 
