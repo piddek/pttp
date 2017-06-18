@@ -382,22 +382,18 @@ class NcursesVisualizer(TppVisualizer):
   def clear(self):
     self.screen.clear
     self.screen.refresh
-  end
 
 
   def setsizes(self):
     self.termwidth = curses.getmaxx(self.screen)
     self.termheight = curses.getmaxy(self.screen)
-  end
 
   def do_refresh(self):
     self.screen.refresh
-  end
 
   def do_withborder(self):
     self.withborder = true
     draw_border
-  end
 
   def draw_border(self):
     self.screen.move(0,0)
@@ -406,92 +402,73 @@ class NcursesVisualizer(TppVisualizer):
     self.screen.move(self.termheight-2,0)
     self.screen.addstr("`")
     # (self.termwidth-2).times { self.screen.addstr("-") }; self.screen.addstr("'")
-    1.upto(self.termheight-3) do |y|
+    for y in range(1, self.termheight -2): #python does not include stop value    
       self.screen.move(y,0)
       self.screen.addstr("|")
-    end
-    1.upto(self.termheight-3) do |y|
+    for y in range(1, self.termheight -2): #python does not include stop value    
       self.screen.move(y,self.termwidth-1)
       self.screen.addstr("|")
-    end
-  end
 
   def new_page(self):
     self.cur_line = self.voffset
     self.output = self.shelloutput = false
     setsizes
     self.screen.clear
-  end
 
   def do_heading(self, line):
     self.screen.attron(curses.A_BOLD)
     print_heading(line)
     self.screen.attroff(curses.A_BOLD)
-  end
 
   def do_horline(self):
     self.screen.attron(curses.A_BOLD)
-    self.termwidth.times do |x|
+    for x in range(1,self.termwidth + 1):
       self.screen.move(self.cur_line,x)
       self.screen.addstr("-")
-    end
     self.screen.attroff(curses.A_BOLD)
-  end
 
   def print_heading(self,text):
     width = self.termwidth - 2*self.indent
     lines = split_lines(text,width)
-    lines.each do |l|
+    for l in lines:
       self.screen.move(self.cur_line,self.indent)
       x = (self.termwidth - l.length)/2
       self.screen.move(self.cur_line,x)
       self.screen.addstr(l)
       self.cur_line += 1
-    end
-  end
 
   def do_center(self,text):
     width = self.termwidth - 2*self.indent
-    if self.output or self.shelloutput then
+    if self.output or self.shelloutput:
       width -= 2
-    end
     lines = split_lines(text,width)
-    lines.each do |l|
+    for l in lines:
       self.screen.move(self.cur_line,self.indent)
       if self.output or self.shelloutput then
         self.screen.addstr("| ")
-      end
       x = (self.termwidth - l.length)/2
       self.screen.move(self.cur_line,x)
       self.screen.addstr(l)
       if self.output or self.shelloutput then
         self.screen.move(self.cur_line,self.termwidth - self.indent - 2)
         self.screen.addstr(" |")
-      end
       self.cur_line += 1
-    end
-  end
 
   def do_right(self,text):
     width = self.termwidth - 2*self.indent
     if self.output or self.shelloutput then
       width -= 2
-    end
     lines = split_lines(text,width)
     lines.each do |l|
       self.screen.move(self.cur_line,self.indent)
       if self.output or self.shelloutput then
         self.screen.addstr("| ")
-      end
       x = (self.termwidth - l.length - 5)
       self.screen.move(self.cur_line,x)
       self.screen.addstr(l)
       if self.output or self.shelloutput then
         self.screen.addstr(" |")
-      end
       self.cur_line += 1
-    end
-  end
 
   def show_help_page(self):
     help_text = [ "tpp help",
@@ -512,22 +489,17 @@ class NcursesVisualizer(TppVisualizer):
       self.screen.move(y,self.indent)
       self.screen.addstr(line)
       y += 1
-    end
     self.screen.move(self.termheight - 2, self.indent)
     self.screen.addstr("Press any key to return to slide")
     self.screen.refresh
-  end
 
   def do_exec(self, cmdline):
     rc = Kernel.system(cmdline)
     if not rc then
       # self.todo: add error message
-    end
-  end
 
   def do_wait(self):
-    # nothing
-  end
+    pass
 
   def do_beginoutput(self):
     self.screen.move(self.cur_line,self.indent)
@@ -536,7 +508,6 @@ class NcursesVisualizer(TppVisualizer):
     self.screen.addstr(".")
     self.output = true
     self.cur_line += 1
-  end
 
   def do_beginshelloutput(self):
     self.screen.move(self.cur_line,self.indent)
@@ -545,7 +516,6 @@ class NcursesVisualizer(TppVisualizer):
     self.screen.addstr(".")
     self.shelloutput = true
     self.cur_line += 1
-  end
 
   def do_endoutput(self):
     if self.output then
@@ -555,35 +525,28 @@ class NcursesVisualizer(TppVisualizer):
       self.screen.addstr("'")
       self.output = false
       self.cur_line += 1
-    end
-  end
 
   def do_title(self,title):
     do_boldon
     do_center(title)
     do_boldoff
     do_center("")
-  end
 
   def do_footer(self,footer_txt):
     self.screen.move(self.termheight - 3, (self.termwidth - footer_txt.length)/2)
     self.screen.addstr(footer_txt)
-  end
 
  def do_header(self,header_txt):
     self.screen.move(self.termheight - self.termheight+1, (self.termwidth - header_txt.length)/2)
     self.screen.addstr(header_txt)
- end
 
   def do_author(self, author):
     do_center(author)
     do_center("")
-  end
 
   def do_date(self,date):
     do_center(date)
     do_center("")
-  end
 
   def do_endshelloutput(self):
     if self.shelloutput then
@@ -593,64 +556,49 @@ class NcursesVisualizer(TppVisualizer):
       self.screen.addstr("'")
       self.shelloutput = false
       self.cur_line += 1
-    end
-  end
 
   def do_sleep(self,time2sleep):
     Kernel.sleep(time2sleep.to_i)
-  end
 
   def do_boldon(self):
     self.screen.attron(curses.A_BOLD)
-  end
 
   def do_boldoff(self):
     self.screen.attroff(curses.A_BOLD)
-  end
 
   def do_revon(self):
     self.screen.attron(curses.A_REVERSE)
-  end
 
   def do_revoff(self):
     self.screen.attroff(curses.A_REVERSE)
-  end
 
   def do_ulon(self):
     self.screen.attron(curses.A_UNDERLINE)
-  end
 
   def do_uloff(self):
     self.screen.attroff(curses.A_UNDERLINE)
-  end
 
   def do_beginslideleft(self):
     self.slideoutput = true
     self.slidedir = "left"
-  end
 
   def do_endslide(self):
     self.slideoutput = false
-  end
 
   def do_beginslideright(self):
     self.slideoutput = true
     self.slidedir = "right"
-  end
 
   def do_beginslidetop(self):
     self.slideoutput = true
     self.slidedir = "top"
-  end
 
   def do_beginslidebottom(self):
     self.slideoutput = true
     self.slidedir = "bottom"
-  end
 
   def do_sethugefont(self, params):
     self.figletfont = params
-  end
 
   def do_huge(self, figlet_text):
     output_width = self.termwidth - self.indent
@@ -658,9 +606,7 @@ class NcursesVisualizer(TppVisualizer):
     op = IO.popen("figlet -f #{self.figletfont} -w #{output_width} -k \"#{figlet_text}\"","r")
     op.readlines.each do |line|
       print_line(line)
-    end
     op.close
-  end
 
   def do_bgcolor(self, color):
     bgcolor = ColorMap.get_color(color) or COLOR_BLACK
@@ -676,18 +622,14 @@ class NcursesVisualizer(TppVisualizer):
       curses.bkgd(curses.COLOR_PAIR(self.fgcolor))
     else
       curses.bkgd(curses.COLOR_PAIR(1))
-    end
-  end
 
   def do_fgcolor(self,color):
     self.fgcolor = ColorMap.get_color_pair(color)
     curses.attron(curses.COLOR_PAIR(self.fgcolor))
-  end
 
   def do_color(self, color):
     num = ColorMap.get_color_pair(color)
     curses.attron(curses.COLOR_PAIR(num))
-  end
 
   def type_line(self,l):
     l.each_byte do |x|
@@ -697,8 +639,6 @@ class NcursesVisualizer(TppVisualizer):
       time_to_sleep = (5 + r).to_f / 250;
       # puts "#{time_to_sleep} #{r}"
       Kernel.sleep(time_to_sleep)
-    end
-  end
 
   def slide_text(self,l):
     return if l == ""
@@ -712,7 +652,6 @@ class NcursesVisualizer(TppVisualizer):
         time_to_sleep = 1.to_f / 20
         Kernel.sleep(time_to_sleep)
         xcount -= 1
-      end
     when "right"
       (self.termwidth - self.indent).times do |pos|
         self.screen.move(self.cur_line,self.termwidth - pos - 1)
@@ -748,7 +687,6 @@ class NcursesVisualizer(TppVisualizer):
     width = self.termwidth - 2*self.indent
     if self.output or self.shelloutput then
       width -= 2
-    end
     lines = split_lines(line,width)
     lines.each do |l|
       self.screen.move(self.cur_line,self.indent)
@@ -773,7 +711,6 @@ class NcursesVisualizer(TppVisualizer):
   def close(self):
     curses.nocbreak
     curses.endwin
-  end
 
   def read_newpage(self,pages,current_page):
     page = []
@@ -803,48 +740,37 @@ class NcursesVisualizer(TppVisualizer):
     curses.noecho
     self.screen.move(self.termheight - 2, self.indent + prompt_indent)
     (prompt.length + page[0].to_s.length).times { self.screen.addstr(" ") }
-    if page[0] then
+    if page[0]:
       return page[0] - 1
-    end
     return -1 # invalid page
-  end
 
   def store_screen(self):
     self.screen.dupwin
-  end
 
   def getLastFile(self):
-    self.lastFileName
-  end
+    return self.lastFileName
 
   def restore_screen(self,s):
     curses.overwrite(s,self.screen)
-  end
 
   def draw_slidenum(self, cur_page,max_pages,eop):
     self.screen.move(self.termheight - 2, self.indent)
     self.screen.attroff(curses.A_BOLD) # this is bad
     self.screen.addstr("[slide #{cur_page}/#{max_pages}]")
-    if self.footer_txt.to_s.length > 0 then
+    if len(self.footer_txt) > 0:
       do_footer(self.footer_txt)
-    end
-    if self.header_txt.to_s.length > 0 then
+    if len(self.header_txt) > 0:
       do_header(self.header_txt)
-    end
 
     if eop then
       draw_eop_marker
-    end
-  end
 
   def draw_eop_marker(self):
     self.screen.move(self.termheight - 2, self.indent - 1)
     self.screen.attron(A_BOLD)
     self.screen.addstr("*")
     self.screen.attroff(A_BOLD)
-  end
 
-end
 
 viz = cursesVisualizer()
 print viz.split_lines("Vargen ar nu alla har, har patrullerna sa kar, leder stottar skogens djur",20)
