@@ -349,7 +349,7 @@ class NcursesVisualizer(TppVisualizer):
     self.lastFileName = ""
     b=4
     b=5
-    self.termheight, self.termwidth  = self.screen.getmaxyx() # set sizes
+    self.setsizes()
     b=6
     curses.start_color()
     b=7
@@ -365,6 +365,9 @@ class NcursesVisualizer(TppVisualizer):
     self.cur_line = self.voffset
     self.output = self.shelloutput = False
    except:
+    curses.nocbreak()
+    self.screen,keypad(False)
+    curses.echo()
     curses.endwin()
     print "Nu blev det rumpa: " +str(b)
 
@@ -402,6 +405,10 @@ class NcursesVisualizer(TppVisualizer):
   def do_withborder(self):
     self.withborder = True
     draw_border()
+
+  def setsizes(self):
+    self.termheight, self.termwidth  = self.screen.getmaxyx() # set sizes
+
 
   def draw_border(self):
     self.screen.move(0,0)
@@ -720,9 +727,10 @@ class NcursesVisualizer(TppVisualizer):
       self.cur_line += 1
 
   def close(self):
-    curses.nocbreak
+    self.screen.keypad(False)
+    curses.nocbreak()
+    curses.echo()
     curses.endwin()
-
 
   def read_newpage(self,pages,current_page):
     page = []
