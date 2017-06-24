@@ -331,32 +331,46 @@ class TppVisualizer:
 
 
 # Implements an interactive visualizer which builds on top of curses.
-class cursesVisualizer(TppVisualizer):
+class NcursesVisualizer(TppVisualizer):
 
   def __init__(self):
+   b=0
+   try:
     self.figletfont = "standard"
-    curses.initscr()
+    self.screen = curses.initscr()
     curses.curs_set(0)
-    curses.cbreak # unbuffered input
-    curses.noecho # turn off input echoing
-    curses.stdscr.intrflush(false)
-    curses.stdscr.keypad(true)
-    self.screen = curses.stdscr
-    self.lastFileName = nil
-    setsizes
+    curses.cbreak() # unbuffered input
+    curses.noecho() # turn off input echoing
+    b=1
+    # self.screen.intrflush(False) #FIX THIS
+    b=2
+    self.screen.keypad(True)
+    b=3
+    self.lastFileName = ""
+    b=4
+    b=5
+    self.termheight, self.termwidth  = self.screen.getmaxyx() # set sizes
+    b=6
     curses.start_color()
+    b=7
     curses.use_default_colors()
-    do_bgcolor("black")
-    do_fgcolor("white")
+    b=8
+    #do_bgcolor("black")
+    b=9
+    #do_fgcolor("white")
+    b=10
     # self.fgcolor = ColorMap.get_color_pair("white")
     self.voffset = 5
     self.indent = 3
     self.cur_line = self.voffset
-    self.output = self.shelloutput = false
+    self.output = self.shelloutput = False
+   except:
+    curses.endwin()
+    print "Nu blev det rumpa: " +str(b)
 
 
   def get_key(self):
-    ch = curses.getch
+    ch = self.screen.getch()
     if ch in [ord('d'), ord('D'), ord('j'), ord('J'), ord('l'), ord('L'), curses.KEY_DOWN, curses.KEY_RIGHT]:
         return "keyright"
     if ch in [ord('a'), ord('A'), ord('b'), ord('B'), ord('h'), ord('H'), ord('k'), ord('K'), curses.KEY_UP, curses.KEY_LEFT]:
@@ -379,28 +393,27 @@ class cursesVisualizer(TppVisualizer):
         return "keyright"
 
   def clear(self):
-    self.screen.clear
-    self.screen.refresh
-
-
-  def setsizes(self):
-    self.termwidth = curses.getmaxx(self.screen)
-    self.termheight = curses.getmaxy(self.screen)
+    self.screen.clear()
+    self.screen.refresh()
 
   def do_refresh(self):
-    self.screen.refresh
+    self.screen.refresh()
 
   def do_withborder(self):
-    self.withborder = true
-    draw_border
+    self.withborder = True
+    draw_border()
 
   def draw_border(self):
     self.screen.move(0,0)
     self.screen.addstr(".")
-    # (self.termwidth-2).times { self.screen.addstr("-") }; self.screen.addstr(".")
+    for i in range (self.termwidth-2):
+        self.screen.addstr("-")
+    self.screen.addstr(".")
     self.screen.move(self.termheight-2,0)
     self.screen.addstr("`")
-    # (self.termwidth-2).times { self.screen.addstr("-") }; self.screen.addstr("'")
+    for i in range(self.termwidth-2):
+        self.screen.addstr("-")
+    self.screen.addstr("'")
     for y in range(1, self.termheight -2): #python does not include stop value    
       self.screen.move(y,0)
       self.screen.addstr("|")
@@ -416,7 +429,7 @@ class cursesVisualizer(TppVisualizer):
 
   def do_heading(self, line):
     self.screen.attron(curses.A_BOLD)
-    print_heading(line)
+    self.print_heading(line)
     self.screen.attroff(curses.A_BOLD)
 
   def do_horline(self):
@@ -428,7 +441,7 @@ class cursesVisualizer(TppVisualizer):
 
   def print_heading(self,text):
     width = self.termwidth - 2*self.indent
-    lines = split_lines(text,width)
+    lines = self.split_lines(text,width)
     for l in lines:
       self.screen.move(self.cur_line,self.indent)
       x = (self.termwidth - l.length)/2
@@ -708,7 +721,8 @@ class cursesVisualizer(TppVisualizer):
 
   def close(self):
     curses.nocbreak
-    curses.endwin
+    curses.endwin()
+
 
   def read_newpage(self,pages,current_page):
     page = []
@@ -768,8 +782,14 @@ class cursesVisualizer(TppVisualizer):
     self.screen.attroff(A_BOLD)
 
 
-viz = cursesVisualizer()
-print viz.split_lines("Vargen ar nu alla har, har patrullerna sa kar, leder stottar skogens djur",20)
+viz = NcursesVisualizer()
+lines = viz.split_lines("Vargen ar nu alla har, har patrullerna sa kar, leder stottar skogens djur",20)
+
+viz.do_heading("Oh, I like it")
+viz.get_key()
+viz.draw_border()
+viz.get_key()
+viz.close()
 
 
 
