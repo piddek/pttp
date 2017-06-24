@@ -1,4 +1,4 @@
---author Gabriel Rea
+--author piddek
 --title An example of shell evaluation
 --date today
 
