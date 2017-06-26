@@ -1,16 +1,16 @@
-import curses, sys, getopt, subprocess, visualizer
+import curses, sys, getopt, subprocess, visualize
 version_number = "ALFA 0.1"
 
 
 class FileParser:
 
    def __init__(self,filename):
-      print "Init file parser"
+      # print "Init file parser"
       self.filename = filename
       self.pages = []
 
    def get_pages(self):
-      print "in get pages"
+      # print "in get pages"
       try:
          f = open(self.filename)
       except (IOError, OSError) as e:
@@ -48,7 +48,7 @@ class Page:
 
    # Appends a line to the page, but only if _line_ is not null
    def add_line(self,line):
-      print "Add line " + line
+      # print "Add line " + line
       if line != "":
          self.lines.append(line)
          prefix = ""
@@ -126,7 +126,7 @@ class TppControler: #Abstract class for any controller
 class InteractiveController(TppControler):
 
   def __init__(self,filename,visualizer_class):
-    print "Init ctrl"
+    # print "Init ctrl"
     self.filename = filename
     self.vis = visualizer_class()
     self.cur_page = 0
@@ -135,99 +135,97 @@ class InteractiveController(TppControler):
     self.vis.close
 
   def run(self):
-     print "loading pages from " + self.filename
-     self.reload_file = False
-     parser = FileParser(self.filename)
-     print parser
-     self.pages = parser.get_pages()
-     if self.cur_page >= self.pages.size:
-         self.cur_page = self.pages.size - 1
-     self.vis.clear()
-     self.vis.new_page()
-     self.do_run()
-     # while self.reload_file
+     try: 
+        # print "loading pages from " + self.filename
+        self.reload_file = False
+        parser = FileParser(self.filename)
+        print parser
+        self.pages = parser.get_pages()
+        if self.cur_page >= len(self.pages):
+           self.cur_page = len(self.pages) - 1
+        self.vis.clear()
+        self.vis.new_page()
+        self.do_run()
+        # while self.reload_file
+     except Exception as e:
+        self.close()
+        print e
 
   def do_run(self):
+    try:
+      while(True):
+          wait = False
+          self.vis.draw_slidenum(self.cur_page + 1, len(self.pages), False)
+          # read and visualize lines until the visualizer says "stop" or we reached end of page
+          iterate = True #emulating do while
+          while iterate: 
+            line = self.pages[self.cur_page].next_line
+            eop = self.pages[self.cur_page].eop
+            wait = self.vis.visualize(line)
+            iterate =  not wait and not eop
+          # draw slide number on the bottom left and redraw:
+          self.vis.draw_slidenum(self.cur_page + 1, self.pages.size, eop)
+          self.vis.do_refresh()
 
-    loop do
-      wait = False
-      self.vis.draw_slidenum(self.cur_page + 1, self.pages.size, False)
-      # read and visualize lines until the visualizer says "stop" or we reached end of page
-      begin
-        line = self.pages[self.cur_page].next_line
-        eop = self.pages[self.cur_page].eop?
-        wait = self.vis.visualize(line)
-      end while not wait and not eop
-      # draw slide number on the bottom left and redraw:
-      self.vis.draw_slidenum(self.cur_page + 1, self.pages.size, eop)
-      self.vis.do_refresh()
-
-      # read a character from the keyboard
-      # a "break" in the when means that it breaks the loop, i.e. goes on with visualizing lines
-      loop do
-        ch = self.vis.get_key()
-        case ch
-          when :quit
-            return
-          when :redraw
-            # @todo: actually implement redraw
-          when :lastpage
-            self.cur_page = self.pages.size - 1
-            break
-          when :edit
-            if self.vis.getLastFile()
-              screen = self.vis.store_screen
-              Kernel.system("vim " + @vis.getLastFile)
-              self.vis.restore_screen(screen)
-            end
-            break
-          when :firstpage
-            self.cur_page = 0
-            break
-          when :jumptoslide
-            screen = self.vis.store_screen
-            p = self.vis.read_newpage(self.pages,self.cur_page)
-            if p >= 0 and p < self.pages.size
-              self.cur_page = p
-              slef.pages[self.cur_page].reset_eop
-              self.vis.new_page
-            else
-              self.vis.restore_screen(screen)
-            end
-            break
-          when :reload
-            self.reload_file = True
-            return
-          when :help
-            screen = self.vis.store_screen()
-            self.vis.show_help_page()
+          # read a character from the keyboard
+          # a "break" in the when means that it breaks the loop, i.e. goes on with visualizing lines
+          while(True):
             ch = self.vis.get_key()
-            self.vis.clear()
-            self.vis.restore_screen(screen)
-          when :keyright
-            if self.cur_page + 1 < self.pages.size and eop then
-              self.cur_page += 1
-              self.pages[@cur_page].reset_eop()
-              self.vis.new_page()
-            end
-            break
-          when :keyleft
-            if self.cur_page > 0 then
-              self.cur_page -= 1
-              self.pages[self.cur_page].reset_eop
-              self.vis.new_page
-            end
-            break
-          when :keyresize
-            self.vis.setsizes()
-        end
-      end
-    end # loop
-  end
-
-end
-
-
+            if ch == "quit":
+                return
+            elif ch =="redraw":
+                # @todo: actually implement redraw
+                pass
+            elif ch == "lastpage":
+                self.cur_page = self.pages.size - 1
+                break
+            elif ch == "edit":
+                if self.vis.getLastFile():
+                  screen = self.vis.store_screen()
+                  Kernel.system("vim " + self.vis.getLastFile)
+                  self.vis.restore_screen(screen)
+                break
+            elif ch == "firstpage":
+                self.cur_page = 0
+                break
+            elif ch == "jumptoslide":
+                screen = self.vis.store_screen
+                p = self.vis.read_newpage(self.pages,self.cur_page)
+                if p >= 0 and p < self.pages.size:
+                  self.cur_page = p
+                  self.pages[self.cur_page].reset_eop()
+                  self.vis.new_page()
+                else:
+                  self.vis.restore_screen(screen)
+                break
+            elif ch == "reload":
+                self.reload_file = True
+                return
+            elif ch == "help":
+                screen = self.vis.store_screen()
+                self.vis.show_help_page()
+                ch = self.vis.get_key()
+                self.vis.clear()
+                self.vis.restore_screen(screen)
+            elif  ch == "keyright":
+                if (self.cur_page + 1 < self.pages.size) and eop:
+                  self.cur_page += 1
+                  self.pages[self.cur_page].reset_eop()
+                  self.vis.new_page()
+                break
+            elif ch == "keyleft":
+                if self.cur_page > 0:
+                  self.cur_page -= 1
+                  self.pages[self.cur_page].reset_eop()
+                  self.vis.new_page()
+                break
+            elif ch == "keyresize":
+                self.vis.setsizes()
+            else:
+                pass # unknown key, do nothing
+    except Exception as e:
+        self.close()
+        print e
 
 
 def main(argv):
@@ -237,8 +235,8 @@ def main(argv):
       opts, args = getopt.getopt(argv,"t:o:s:vh",["type=","outputfile","seconds=","version","help"])
    except getopt.GetoptError:
       usage();
-   print opts
-   print args
+   # print opts
+   # print args
    if (len(args) == 0 and len(opts) ==0) or (len(args) > 1):
       usage();
    for opt, arg in opts:
@@ -253,13 +251,13 @@ def main(argv):
       elif opt in ("-s", "--seconds"):
          time = int(arg)
    input = args[0]
-   print 'Input file is ', input
-   print 'Type is ', type
+   # print 'Input file is ', input
+   # print 'Type is ', type
 
    if type == "ncurses":   # No swich case in python
-      ctrl = InteractiveController(input,visualizer.NcursesVisualizer)
+      ctrl = InteractiveController(input,visualize.NcursesVisualizer)
    elif type ==  "autoplay":
-      ctrl = AutoplayController(input,time,visualizer.NcursesVisualizer)
+      ctrl = AutoplayController(input,time,visualize.NcursesVisualizer)
    elif type ==  "txt":
       if output == "":
          print "Missing output file!"
@@ -275,7 +273,7 @@ def main(argv):
    else:
       usage()
 
-   print "Starting ctrl"
+   # print "Starting ctrl"
    ctrl.run()
    ctrl.close
  

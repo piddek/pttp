@@ -347,6 +347,8 @@ class NcursesVisualizer(TppVisualizer):
     self.screen.keypad(True)
     b=3
     self.lastFileName = ""
+    self.footer_txt = ""
+    self.header_txt = ""
     b=4
     b=5
     self.setsizes()
@@ -430,8 +432,8 @@ class NcursesVisualizer(TppVisualizer):
 
   def new_page(self):
     self.cur_line = self.voffset
-    self.output = self.shelloutput = false
-    setsizes
+    self.output = self.shelloutput = False
+    self.setsizes()
     self.screen.clear
 
   def do_heading(self, line):
@@ -556,7 +558,7 @@ class NcursesVisualizer(TppVisualizer):
     do_center("")
 
   def do_footer(self,footer_txt):
-    self.screen.move(self.termheight - 3, (self.termwidth - footer_txt.length)/2)
+    self.screen.move(self.termheight - 3, (self.termwidth - len(footer_txt))/2)
     self.screen.addstr(footer_txt)
 
   def do_header(self,header_txt):
@@ -728,8 +730,8 @@ class NcursesVisualizer(TppVisualizer):
 
   def close(self):
     self.screen.keypad(False)
-    curses.nocbreak()
     curses.echo()
+    curses.nocbreak()
     curses.endwin()
 
   def read_newpage(self,pages,current_page):
@@ -790,14 +792,14 @@ class NcursesVisualizer(TppVisualizer):
     self.screen.attroff(A_BOLD)
 
 
-viz = NcursesVisualizer()
-lines = viz.split_lines("Vargen ar nu alla har, har patrullerna sa kar, leder stottar skogens djur",20)
+#viz = NcursesVisualizer()
+#lines = viz.split_lines("Vargen ar nu alla har, har patrullerna sa kar, leder stottar skogens djur",20)
 
-viz.do_heading("Oh, I like it")
-viz.get_key()
-viz.draw_border()
-viz.get_key()
-viz.close()
+#viz.do_heading("Oh, I like it")
+#viz.get_key()
+#viz.draw_border()
+#viz.get_key()
+#viz.close()
 
 
 
