@@ -1,3 +1,4 @@
+import pdb
 import curses, sys, getopt, subprocess, visualize
 version_number = "ALFA 0.1"
 
@@ -35,6 +36,7 @@ class FileParser:
             cur_page = Page(name)
          else:
             cur_page.add_line(line)
+      print self.pages
       return(self.pages)
 
 class Page:
@@ -72,7 +74,7 @@ class Page:
       line = self.lines[self.cur_line]
       self.cur_line = self.cur_line + 1
       if self.cur_line >= len(self.lines):
-         self.eop = true
+         self.eop = True
       return(line)
 
    def is_eop(self):
@@ -155,16 +157,22 @@ class InteractiveController(TppControler):
     try:
       while(True):
           wait = False
+          # pdb.set_trace()
           self.vis.draw_slidenum(self.cur_page + 1, len(self.pages), False)
           # read and visualize lines until the visualizer says "stop" or we reached end of page
           iterate = True #emulating do while
           while iterate: 
-            line = self.pages[self.cur_page].next_line
+            # pdb.set_trace()
+            line = self.pages[self.cur_page].next_line()
+            # print "Da line: ", line
+            # pdb.set_trace()
             eop = self.pages[self.cur_page].eop
+            # pdb.set_trace()           
             wait = self.vis.visualize(line)
+            # pdb.set_trace()
             iterate =  not wait and not eop
           # draw slide number on the bottom left and redraw:
-          self.vis.draw_slidenum(self.cur_page + 1, self.pages.size, eop)
+          self.vis.draw_slidenum(self.cur_page + 1, len(self.pages), eop)
           self.vis.do_refresh()
 
           # read a character from the keyboard
@@ -177,7 +185,7 @@ class InteractiveController(TppControler):
                 # @todo: actually implement redraw
                 pass
             elif ch == "lastpage":
-                self.cur_page = self.pages.size - 1
+                self.cur_page = len(self.pages) - 1
                 break
             elif ch == "edit":
                 if self.vis.getLastFile():
@@ -191,7 +199,7 @@ class InteractiveController(TppControler):
             elif ch == "jumptoslide":
                 screen = self.vis.store_screen
                 p = self.vis.read_newpage(self.pages,self.cur_page)
-                if p >= 0 and p < self.pages.size:
+                if p >= 0 and p < len(self.pages):
                   self.cur_page = p
                   self.pages[self.cur_page].reset_eop()
                   self.vis.new_page()
@@ -208,7 +216,7 @@ class InteractiveController(TppControler):
                 self.vis.clear()
                 self.vis.restore_screen(screen)
             elif  ch == "keyright":
-                if (self.cur_page + 1 < self.pages.size) and eop:
+                if (self.cur_page + 1 < len(self.pages)) and eop:
                   self.cur_page += 1
                   self.pages[self.cur_page].reset_eop()
                   self.vis.new_page()
@@ -255,6 +263,7 @@ def main(argv):
    # print 'Type is ', type
 
    if type == "ncurses":   # No swich case in python
+      # pdb.set_trace()
       ctrl = InteractiveController(input,visualize.NcursesVisualizer)
    elif type ==  "autoplay":
       ctrl = AutoplayController(input,time,visualize.NcursesVisualizer)

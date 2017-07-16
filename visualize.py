@@ -1,4 +1,4 @@
-import datetime, curses,time
+import datetime, curses,time,pdb
 
 class TppVisualizer:
 
@@ -221,111 +221,112 @@ class TppVisualizer:
   # to the correct method which then does the correct processing.
   # It returns whether the controller shall wait for input.
   def visualize(self, line):
+      # print "The value of line is: ",line
+      # pdb.set_trace()
       if line.startswith("--heading"):
         text = line.replace("--heading ","")
-        do_heading(text)
+        self.do_heading(text)
       elif line.startswith("--withborder"):
-        do_withborder
+        self.do_withborder
       elif line.startswith("--horline"):
-        do_horline
+        self.do_horline
       elif line.startswith("--color "):
         text = line.replace("--color ","")
         text = text.rstrip
-        do_color(text)
+        self.do_color(text)
       elif line.startswith("--center "):
         text = line.replace("--center ","")
-        do_center(text)
+        self.do_center(text)
       elif line.startswith("--right "):
         text = line.replace("--right ","")
-        do_right(text)
+        self.do_right(text)
       elif line.startswith("--exec "):
         cmdline = line.replace("--exec ","")
-        do_exec(cmdline)
+        self.do_exec(cmdline)
       elif line.startswith("---"):
-        do_wait
-        return true
+        self.do_wait
+        return True
       elif line.startswith("--beginoutput"):
-        do_beginoutput
+        self.do_beginoutput
       elif line.startswith("--beginshelloutput"):
-        do_beginshelloutput
+        self.do_beginshelloutput
       elif line.startswith("--endoutput"):
-        do_endoutput
+        self.do_endoutput
       elif line.startswith("--endshelloutput"):
-        do_endshelloutput
+        self.do_endshelloutput
       elif line.startswith("--sleep "):
         time2sleep = line.replace("--sleep ","")
-        do_sleep(time2sleep)
+        self.do_sleep(time2sleep)
       elif line.startswith("--boldon"):
-        do_boldon
+        self.do_boldon
       elif line.startswith("--boldoff"):
-        do_boldoff
+        self.do_boldoff
       elif line.startswith("--revon"):
-        do_revon
+        self.do_revon
       elif line.startswith("--revoff"):
-        do_revoff
+        self.do_revoff
       elif line.startswith("--ulon"):
-        do_ulon
+        self.do_ulon
       elif line.startswith("--uloff"):
-        do_uloff
+        self.do_uloff
       elif line.startswith("--beginslideleft"):
-        do_beginslideleft
+        self.do_beginslideleft
       elif line.startswith(("--endslideleft", "--endslideright", "--endslidetop", "--endslidebottom")):
-        do_endslide
+        self.do_endslide
       elif line.startswith("--beginslideright"):
-        do_beginslideright
+        self.do_beginslideright
       elif line.startswith("--beginslidetop"):
-        do_beginslidetop
+        self.do_beginslidetop
       elif line.startswith("--beginslidebottom"):
-        do_beginslidebottom
+        self.do_beginslidebottom
       elif line.startswith("--sethugefont "):
         params = line.replace("--sethugefont ","")
-        do_sethugefont(params.strip)
+        self.do_sethugefont(params.strip)
       elif line.startswith("--huge "):
         figlet_text = line.replace("--huge ","")
-        do_huge(figlet_text)
+        self.do_huge(figlet_text)
       elif line.startswith("--footer "):
         self.footer_txt = line.replace("--footer ","")
-        do_footer(self.footer_txt)
+        self.do_footer(self.footer_txt)
       elif line.startswith("--header "):
         self.header_txt = line.replace("--header ","")
-        do_header(self.header_txt)
+        self.do_header(self.header_txt)
       elif line.startswith("--title "):
         title = line.replace("--title ","")
-        do_title(title)
+        self.do_title(title)
       elif line.startswith("--author "):
         author = line.replace("--author ","")
-        do_author(author)
+        self.do_author(author)
       elif line.startswith("--date "):
         date = line.replace("--date ","")
         if (date == "today"):
 		  date = datetime.datetime.now().strftime("%b %d %Y") #now with default format
         elif date.startswith("today "):  # this is for now with custom date format
           date = datetime.datetime.now().strftime(date.replace("today ",""))
-        do_date(date)
+        self.do_date(date)
       elif line.startswith("--bgcolor "):
         color = line.replace("--bgcolor ","").rstrip
-        do_bgcolor(color)
+        self.do_bgcolor(color)
       elif line.startswith("--fgcolor "):
         color = line.replace("--fgcolor ","").rstrip
-        do_fgcolor(color)
+        self.do_fgcolor(color)
       elif line.startswith("--color "):
         color = line.replace("--color ","").rstrip
-        do_color(color)
+        self.do_color(color)
       elif line.startswith("--include-file "):
         self.lastFileName = line.replace("--include-file ","").rstrip
-        do_beginoutput
+        self.do_beginoutput
         print_line(self.lastFileName)
-        do_beginoutput
+        self.do_beginoutput
         f = open(self.lastFileName)
         for line in f:
           line.rstrip
           if line != "":
             print_line(line)
-        do_endoutput
+        self.do_endoutput
       else:
         print_line(line)
-      return false
-
+      return False
   def close(self):
     pass
 
@@ -357,9 +358,9 @@ class NcursesVisualizer(TppVisualizer):
     b=7
     curses.use_default_colors()
     b=8
-    #do_bgcolor("black")
+    do_bgcolor("black")
     b=9
-    #do_fgcolor("white")
+    do_fgcolor("white")
     b=10
     # self.fgcolor = ColorMap.get_color_pair("white")
     self.voffset = 5
@@ -462,7 +463,7 @@ class NcursesVisualizer(TppVisualizer):
     width = self.termwidth - 2*self.indent
     if self.output or self.shelloutput:
       width -= 2
-    lines = split_lines(text,width)
+    lines = self.split_lines(text,width)
     for l in lines:
       self.screen.move(self.cur_line,self.indent)
       if self.output or self.shelloutput:
@@ -479,7 +480,7 @@ class NcursesVisualizer(TppVisualizer):
     width = self.termwidth - 2*self.indent
     if self.output or self.shelloutput:
       width -= 2
-    lines = split_lines(text,width)
+    lines = self.split_lines(text,width)
     for l in lines:
       self.screen.move(self.cur_line,self.indent)
       if self.output or self.shelloutput:
@@ -529,7 +530,7 @@ class NcursesVisualizer(TppVisualizer):
     for i in range((self.termwidth - self.indent*2 - 2+1)):
       self.screen.addstr("-")
     self.screen.addstr(".")
-    self.output = true
+    self.output = True
     self.cur_line += 1
 
   def do_beginshelloutput(self):
@@ -538,7 +539,7 @@ class NcursesVisualizer(TppVisualizer):
     for  i in range((self.termwidth - self.indent*2 - 2+1)):
        self.screen.addstr("-")
     self.screen.addstr(".")
-    self.shelloutput = true
+    self.shelloutput = True
     self.cur_line += 1
 
   def do_endoutput(self):
@@ -548,14 +549,14 @@ class NcursesVisualizer(TppVisualizer):
       for i in range(self.termwidth - self.indent*2 - 2 + 1):
          self.screen.addstr("-")
       self.screen.addstr("'")
-      self.output = false
+      self.output = False
       self.cur_line += 1
 
   def do_title(self,title):
-    do_boldon
-    do_center(title)
-    do_boldoff
-    do_center("")
+    self.do_boldon()
+    self.do_center(title)
+    self.do_boldoff()
+    self.do_center("")
 
   def do_footer(self,footer_txt):
     self.screen.move(self.termheight - 3, (self.termwidth - len(footer_txt))/2)
@@ -566,12 +567,12 @@ class NcursesVisualizer(TppVisualizer):
     self.screen.addstr(header_txt)
 
   def do_author(self, author):
-    do_center(author)
-    do_center("")
+    self.do_center(author)
+    self.do_center("")
 
   def do_date(self,date):
-    do_center(date)
-    do_center("")
+    self.do_center(date)
+    self.do_center("")
 
   def do_endshelloutput(self):
     if self.shelloutput:
@@ -580,7 +581,7 @@ class NcursesVisualizer(TppVisualizer):
       for i in range (self.termwidth - self.indent*2 - 2):
          self.screen.addstr("-")
       self.screen.addstr("'")
-      self.shelloutput = false
+      self.shelloutput = False
       self.cur_line += 1
 
   def do_sleep(self,time2sleep):
@@ -606,22 +607,22 @@ class NcursesVisualizer(TppVisualizer):
     self.screen.attroff(curses.A_UNDERLINE)
 
   def do_beginslideleft(self):
-    self.slideoutput = true
+    self.slideoutput = True
     self.slidedir = "left"
 
   def do_endslide(self):
-    self.slideoutput = false
+    self.slideoutput = False
 
   def do_beginslideright(self):
-    self.slideoutput = true
+    self.slideoutput = True
     self.slidedir = "right"
 
   def do_beginslidetop(self):
-    self.slideoutput = true
+    self.slideoutput = True
     self.slidedir = "top"
 
   def do_beginslidebottom(self):
-    self.slideoutput = true
+    self.slideoutput = True
     self.slidedir = "bottom"
 
   def do_sethugefont(self, params):
@@ -670,7 +671,7 @@ class NcursesVisualizer(TppVisualizer):
 
   def slide_text(self,l):
     if l == "":
-       return true
+       return True
 
     if self.slidestr == "left":
       xcount = l.length-1
@@ -711,16 +712,16 @@ class NcursesVisualizer(TppVisualizer):
     width = self.termwidth - 2*self.indent
     if self.output or self.shelloutput:
       width -= 2
-    lines = split_lines(line,width)
+    lines = self.split_lines(line,width)
     for l in lines:
       self.screen.move(self.cur_line,self.indent)
       if (self.output or self.shelloutput) and not self.slideoutput:
         self.screen.addstr("| ")
       end
       if self.shelloutput and (l.startswith("$") or l.startswith("%") or l.startswith("#")):  # allow sh and csh style prompts
-        type_line(l)
+        self.type_line(l)
       elif self.slideoutput:
-        slide_text(l)
+        self.slide_text(l)
       else:
         self.screen.addstr(l)
       if (self.output or self.shelloutput) and not self.slideoutput:
@@ -776,20 +777,20 @@ class NcursesVisualizer(TppVisualizer):
   def draw_slidenum(self, cur_page,max_pages,eop):
     self.screen.move(self.termheight - 2, self.indent)
     self.screen.attroff(curses.A_BOLD) # this is bad
-    self.screen.addstr("[slide #{cur_page}/#{max_pages}]")
+    self.screen.addstr("[slide "+str(cur_page)+"/"+str(max_pages)+"]")
     if len(self.footer_txt) > 0:
-      do_footer(self.footer_txt)
+      self.do_footer(self.footer_txt)
     if len(self.header_txt) > 0:
-      do_header(self.header_txt)
+      self.do_header(self.header_txt)
 
     if eop:
-      draw_eop_marker
+      self.draw_eop_marker()
 
   def draw_eop_marker(self):
     self.screen.move(self.termheight - 2, self.indent - 1)
-    self.screen.attron(A_BOLD)
+    self.screen.attron(curses.A_BOLD)
     self.screen.addstr("*")
-    self.screen.attroff(A_BOLD)
+    self.screen.attroff(curses.A_BOLD)
 
 
 #viz = NcursesVisualizer()
