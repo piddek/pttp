@@ -1,5 +1,6 @@
 import pdb
 import curses, sys, getopt, subprocess, visualize
+from curses import wrapper
 version_number = "ALFA 0.1"
 
 
@@ -30,12 +31,14 @@ class FileParser:
             number_pages += 1
 	    name = line[9:] # Remove --newpage(9 characters) and check if anything is left
             if name == "":
-               name = "slide " + str(number_pages+1)
+               name = "slide " + str(number_pages)
             else:
                name.rstrip()
             cur_page = Page(name)
          else:
             cur_page.add_line(line)
+      # pdb.set_trace()
+      self.pages.append(cur_page)
       print self.pages
       return(self.pages)
 
@@ -216,10 +219,13 @@ class InteractiveController(TppControler):
                 self.vis.clear()
                 self.vis.restore_screen(screen)
             elif  ch == "keyright":
-                if (self.cur_page + 1 < len(self.pages)) and eop:
+                # pdb.set_trace()
+                if ((self.cur_page +1)  < len(self.pages)) and eop:
                   self.cur_page += 1
                   self.pages[self.cur_page].reset_eop()
                   self.vis.new_page()
+                else:
+                  return
                 break
             elif ch == "keyleft":
                 if self.cur_page > 0:
@@ -232,6 +238,7 @@ class InteractiveController(TppControler):
             else:
                 pass # unknown key, do nothing
     except Exception as e:
+        # pdb.set_trace()
         self.close()
         print e
 
@@ -290,4 +297,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-   main(sys.argv[1:])
+   wrapper(main(sys.argv[1:]))
