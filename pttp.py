@@ -130,10 +130,10 @@ class TppControler: #Abstract class for any controller
 
 class InteractiveController(TppControler):
 
-  def __init__(self,filename,visualizer_class):
+  def __init__(self,stdscr,filename,visualizer_class):
     # print "Init ctrl"
     self.filename = filename
-    self.vis = visualizer_class()
+    self.vis = visualizer_class(stdscr)
     self.cur_page = 0
 
   def close(self):
@@ -173,7 +173,7 @@ class InteractiveController(TppControler):
             # pdb.set_trace()           
             wait = self.vis.visualize(line)
             # pdb.set_trace()
-            iterate =  not wait and not eop
+            iterate =  (not wait) and (not eop)
           # draw slide number on the bottom left and redraw:
           self.vis.draw_slidenum(self.cur_page + 1, len(self.pages), eop)
           self.vis.do_refresh()
@@ -224,8 +224,8 @@ class InteractiveController(TppControler):
                   self.cur_page += 1
                   self.pages[self.cur_page].reset_eop()
                   self.vis.new_page()
-                else:
-                  return
+                # else:
+                  # return
                 break
             elif ch == "keyleft":
                 if self.cur_page > 0:
@@ -243,7 +243,8 @@ class InteractiveController(TppControler):
         print e
 
 
-def main(argv):
+def main(stdscr):
+   argv =  sys.argv[1:]
    type = "ncurses"
    output = ""
    try:
@@ -271,9 +272,9 @@ def main(argv):
 
    if type == "ncurses":   # No swich case in python
       # pdb.set_trace()
-      ctrl = InteractiveController(input,visualize.NcursesVisualizer)
+      ctrl = InteractiveController(stdscr,input,visualize.NcursesVisualizer)
    elif type ==  "autoplay":
-      ctrl = AutoplayController(input,time,visualize.NcursesVisualizer)
+      ctrl = AutoplayController(stdscr,input,time,visualize.NcursesVisualizer)
    elif type ==  "txt":
       if output == "":
          print "Missing output file!"
@@ -297,4 +298,6 @@ def main(argv):
 
 
 if __name__ == "__main__":
-   wrapper(main(sys.argv[1:]))
+   wrapper(main)
+  
+

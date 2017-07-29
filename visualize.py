@@ -1,8 +1,8 @@
-import datetime, curses,time,pdb,colormap
+import datetime, curses,time,pdb,colormap,sys,tempfile, random
 
 class TppVisualizer:
 
-  def __init__(self):
+  def __init__(self, stdsct):
     pass
 
   # Splits a line into several lines, where each of the result lines is at most
@@ -13,6 +13,7 @@ class TppVisualizer:
     if text != "":
 		while len(text) > 0:
 			i = width
+                        # pdb.set_trace()
 			if len(text) <= i: # text length is OK -> add it to array and stop splitting
 			  lines.append(text)
 			  text = ""
@@ -24,9 +25,9 @@ class TppVisualizer:
 			  if i == 0:
 				i = width
 			  # extract line
-			  x = text[:i-1]
+			  x = text[:i]
 			  # remove extracted line
-			  text = text[i+1:-1]
+			  text = text[i+1:]
 			  # added line to array
 			  lines.append(x)
     return lines
@@ -244,12 +245,15 @@ class TppVisualizer:
         cmdline = line.replace("--exec ","")
         self.do_exec(cmdline)
       elif line.startswith("---"):
+        # pdb.set_trace()
+
+
         self.do_wait()
         return True
       elif line.startswith("--beginoutput"):
         self.do_beginoutput()
       elif line.startswith("--beginshelloutput"):
-        self.do_beginshelloutput
+        self.do_beginshelloutput()
       elif line.startswith("--endoutput"):
         self.do_endoutput()
       elif line.startswith("--endshelloutput"):
@@ -284,7 +288,8 @@ class TppVisualizer:
         self.do_sethugefont(params.strip())
       elif line.startswith("--huge "):
         figlet_text = line.replace("--huge ","")
-        self.do_huge(figlet_text)
+        #TODO implement HUDGE/FIGLET 
+        # self.do_huge(figlet_text)
       elif line.startswith("--footer "):
         self.footer_txt = line.replace("--footer ","")
         self.do_footer(self.footer_txt)
@@ -334,18 +339,19 @@ def close(self):
 # Implements an interactive visualizer which builds on top of curses.
 class NcursesVisualizer(TppVisualizer):
 
-  def __init__(self):
+  def __init__(self,stdscr):
    b=0
    try:
     self.cm = colormap.ColorMap()
     self.figletfont = "standard"
     self.slideoutput = False
-    self.screen = curses.initscr()
+    # self.screen = curses.initscr()
+    self.screen =  stdscr
     curses.curs_set(0)
     curses.cbreak() # unbuffered input
     curses.noecho() # turn off input echoing
     b=1
-    # self.screen.intrflush(False) #FIX THIS
+    curses.intrflush(False)
     b=2
     self.screen.keypad(True)
     b=3
@@ -361,22 +367,29 @@ class NcursesVisualizer(TppVisualizer):
     curses.start_color()
     b=7
     curses.use_default_colors()
+#    for i in range(0,curses.COLORS):
+ #      curses.init_pair(i+1, i, curses.COLOR_RED)
+#    self.screen.addstr('Abban is a kaffit', curses.color_pair(4))
+#    self.screen.getch()
+#    pdb.set_trace()
     b=8
-    self.do_fgcolor("white")
+#    curses.init_color(curses.COLOR_BLUE,0,0, 100)
+    self.do_bgcolor("black")
     b=9
-    self.do_bgcolor("blue")
+    self.do_fgcolor("white")
     b=10
-    self.fgcolor = self.cm.get_color_pair("white")
+    # self.fgcolor = self.cm.get_color_pair("black")
     print b
     self.cur_line = self.voffset
     self.output = self.shelloutput = False
    except Exception as e:
     curses.nocbreak()
-    self.screen.keypad(False)
+    # self.screen.keypad(False)
     curses.echo()
     curses.endwin()
     print e
     print "Nu blev det rumpa: " +str(b)
+    sys.exit()
 
 
   def get_key(self):
@@ -411,29 +424,28 @@ class NcursesVisualizer(TppVisualizer):
 
   def do_withborder(self):
     self.withborder = True
-    draw_border()
+    self.draw_border()
+    self.withborder = True
 
   def setsizes(self):
     self.termheight, self.termwidth  = self.screen.getmaxyx() # set sizes
 
-
   def draw_border(self):
-    self.screen.move(0,0)
-    self.screen.addstr(".")
+    self.screen.addstr(0,0,".")
     for i in range (self.termwidth-2):
         self.screen.addstr("-")
     self.screen.addstr(".")
-    self.screen.move(self.termheight-2,0)
-    self.screen.addstr("`")
+    # self.screen.move(self.termheight-2,0)
+    self.screen.addstr(self.termheight-2,0,"`")
     for i in range(self.termwidth-2):
         self.screen.addstr("-")
     self.screen.addstr("'")
     for y in range(1, self.termheight -2): #python does not include stop value    
-      self.screen.move(y,0)
-      self.screen.addstr("|")
+      # self.screen.move(y,0)
+      self.screen.addstr(y,0,"|")
     for y in range(1, self.termheight -2): #python does not include stop value    
-      self.screen.move(y,self.termwidth-1)
-      self.screen.addstr("|")
+      # self.screen.move(y,self.termwidth-1)
+      self.screen.addstr(y, self.termwidth-1,"|")
 
   def new_page(self):
     self.cur_line = self.voffset
@@ -460,8 +472,7 @@ class NcursesVisualizer(TppVisualizer):
     for l in lines:
       self.screen.move(self.cur_line,self.indent)
       x = (self.termwidth - len(l))/2
-      self.screen.move(self.cur_line,x)
-      self.screen.addstr(l)
+      self.screen.addstr(self.cur_line,x,l)
       self.cur_line += 1
 
   def do_center(self,text):
@@ -480,7 +491,7 @@ class NcursesVisualizer(TppVisualizer):
       self.screen.move(self.cur_line,x)
       self.screen.addstr(l)
       if self.output or self.shelloutput:
-        self.screen.move(self.cur_line,self.termwidth - self.indent - 2)
+        self.screen.move(self.cur_line,self.termwidth - self.indent - 1)
         self.screen.addstr(" |")
       self.cur_line += 1
 
@@ -493,7 +504,7 @@ class NcursesVisualizer(TppVisualizer):
       self.screen.move(self.cur_line,self.indent)
       if self.output or self.shelloutput:
         self.screen.addstr("| ")
-      x = (self.termwidth - len(l) - 5)
+      x = (self.termwidth - len(l) - 4)
       self.screen.move(self.cur_line,x)
       self.screen.addstr(l)
       if self.output or self.shelloutput:
@@ -530,22 +541,24 @@ class NcursesVisualizer(TppVisualizer):
       # self.todo: add error message
 
   def do_wait(self):
+    # self.screen.addstr("In do wait")
+    # self.screen.getch()
     pass
 
   def do_beginoutput(self):
-    self.screen.move(self.cur_line,self.indent)
-    self.screen.addstr(".")
-    for i in range((self.termwidth - self.indent*2 - 2+1)):
+    # self.screen.move(self.cur_line,self.indent)
+    self.screen.addstr(self.cur_line,self.indent,".")
+    for i in range((self.termwidth - self.indent*2 - 2 + 1)):
       self.screen.addstr("-")
     self.screen.addstr(".")
     self.output = True
     self.cur_line += 1
 
   def do_beginshelloutput(self):
-    self.screen.move(self.cur_line,self.indent)
-    self.screen.addstr(".")
-    for  i in range((self.termwidth - self.indent*2 - 2+1)):
+    self.screen.addstr(self.cur_line,self.indent,".")
+    for  i in range((self.termwidth - self.indent*2 - 2 + 1)):
        self.screen.addstr("-")
+    # pdb.set_trace()
     self.screen.addstr(".")
     self.shelloutput = True
     self.cur_line += 1
@@ -646,7 +659,9 @@ class NcursesVisualizer(TppVisualizer):
     op.close
 
   def do_bgcolor(self, color):
+
     bgcolor = self.cm.get_color(color)
+    # pdb.set_trace()
     curses.init_pair(1, curses.COLOR_WHITE, bgcolor)
     curses.init_pair(2, curses.COLOR_YELLOW, bgcolor)
     curses.init_pair(3, curses.COLOR_RED, bgcolor)
@@ -655,15 +670,33 @@ class NcursesVisualizer(TppVisualizer):
     curses.init_pair(6, curses.COLOR_CYAN, bgcolor)
     curses.init_pair(7, curses.COLOR_MAGENTA, bgcolor)
     curses.init_pair(8, curses.COLOR_BLACK, bgcolor)
-    if self.fgcolor:
-      self.screen.bkgd(self.fgcolor)
+    #self.screen.addstr("Vitt\n\r", curses.color_pair(1))
+    #self.screen.addstr("Gult\n\r", curses.color_pair(2))
+    #self.screen.addstr("Rott\n\r", curses.color_pair(3))
+    #self.screen.addstr("Gront\n\r", curses.color_pair(4))
+    #self.screen.addstr("Blatt\n\r", curses.color_pair(5))
+    #self.screen.addstr("Cyan\n\r", curses.color_pair(6))
+    #self.screen.addstr("Magenta\n\r", curses.color_pair(7))
+    #self.screen.addstr("Black\n\r", curses.color_pair(8))
+    # self.screen.bkgd(" ",curses.color_pair(3))
+
+
+    #self.screen.getch()
+    try: # check if thevariableis defined
+        self.fgcolor
+    except:
+        self.screen.bkgd(" ",self.cm.get_color_pair("white"))
+        #self.screen.addstr("No fgcolor defined\n\r", curses.color_pair(3))
+        #self.screen.getch()
     else:
-      self.screen.bkgd(1)
+        #pdb.set_trace()
+        self.screen.bkgd(" ",self.fgcolor)
+        # self.screen.getch()
 
   def do_fgcolor(self,color):
     # pdb.set_trace()
     self.fgcolor = self.cm.get_color_pair(color)
-    self.screen.attron(self.fgcolor)
+    self.screen.bkgd(" ",self.fgcolor)
 
   def do_color(self, color):
     num = self.cm.get_color_pair(color)
@@ -671,11 +704,9 @@ class NcursesVisualizer(TppVisualizer):
 
   def type_line(self,l):
     for x in l:
-      self.screen.addstr(x.chr)
+      self.screen.addstr(x)
       self.screen.refresh()
-      r = rand(20)
-      time_to_sleep = float(5 + r) / 250;
-      # puts "#{time_to_sleep} #{r}"
+      time_to_sleep = random.uniform(0.02,0.1)
       time.sleep(time_to_sleep)
 
   def slide_text(self,l):
@@ -700,20 +731,21 @@ class NcursesVisualizer(TppVisualizer):
         time_to_sleep = float(1) / 20
         time.sleep(time_to_sleep)
     elif self.slidedir == "top":
-      # ycount = self.cur_line
-      pdb.set_trace()
-      new_scr = curses.dupwin(self.screen)
+      tmpfile = tempfile.TemporaryFile()
+      self.screen.putwin(tmpfile)
       for i in range(1,self.cur_line+1):
-        curses.overwrite(new_scr,self.screen) # overwrite self.screen with new_scr
-        self.screen.move(i,self.indent)
-        self.screen.addstr(l)
+        tmpfile.seek(0)
+        self.screen = curses.getwin(tmpfile) # overwrite self.screen with saved screen
+        self.screen.addstr(i, self.indent,l)
         self.screen.refresh()
         time.sleep(float(1) / 10)
     elif self.slidedir == "bottom":
-      pdb.set_trace()
-      new_scr = curses.dupwin(self.screen)
+      tmpfile = tempfile.TemporaryFile()
+      self.screen.putwin(tmpfile)
       for i in range(self.termheight-1,self.cur_line -1,-1):
-        curses.overwrite(new_scr,self.screen)
+        tmpfile.seek(0)
+        self.screen = curses.getwin(tmpfile) # overwrite self.screen with saved screen
+        self.screen.addstr(i, self.indent,l)
         self.screen.move(i,self.indent)
         self.screen.addstr(l)
         self.screen.refresh()
@@ -733,10 +765,9 @@ class NcursesVisualizer(TppVisualizer):
       elif self.slideoutput:
         self.slide_text(l)
       else:
-        self.screen.addstr(l)
+        self.screen.addstr(self.cur_line,self.indent+2,l)
       if (self.output or self.shelloutput) and not self.slideoutput:
-        self.screen.move(self.cur_line,self.termwidth - self.indent - 2)
-        self.screen.addstr(" |")
+        self.screen.addstr(self.cur_line,self.termwidth - self.indent - 1," |")
       self.cur_line += 1
 
   def close(self):
